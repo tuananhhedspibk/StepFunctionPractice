@@ -6,19 +6,19 @@ import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
 import * as fs from 'fs';
 
-class JobPollerStack extends cdk.Stack {
+export class JobPollerStack extends cdk.Stack {
   constructor(app: cdk.App, id: string) {
     super(app, id);
 
     const getStatusLambda = new lambda.Function(this, 'CheckLambda', {
-      code: new lambda.InlineCode(fs.readFileSync('lambdas/check_status.py', { encoding: 'utf-8' })),
+      code: new lambda.InlineCode(fs.readFileSync('lib/lambdas/check_status.py', { encoding: 'utf-8' })),
       handler: 'index.main',
       timeout: cdk.Duration.seconds(30),
       runtime: lambda.Runtime.PYTHON_3_9
     });
 
     const submitLambda = new lambda.Function(this, 'SubmitLambda', {
-      code: new lambda.InlineCode(fs.readFileSync('lambdas/submit.py', { encoding: 'utf-8' })),
+      code: new lambda.InlineCode(fs.readFileSync('lib/lambdas/submit.py', { encoding: 'utf-8' })),
       handler: 'index.main',
       timeout: cdk.Duration.seconds(30),
       runtime: lambda.Runtime.PYTHON_3_9
