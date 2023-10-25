@@ -10,7 +10,7 @@ export class JobPollerStack extends cdk.Stack {
   constructor(app: cdk.App, id: string) {
     super(app, id);
 
-    const getStatusLambda = new lambda.Function(this, 'CheckLambda', {
+    const checkLambda = new lambda.Function(this, 'CheckLambda', {
       code: new lambda.InlineCode(fs.readFileSync('lib/lambdas/check_status.py', { encoding: 'utf-8' })),
       handler: 'index.main',
       timeout: cdk.Duration.seconds(30),
@@ -32,7 +32,7 @@ export class JobPollerStack extends cdk.Stack {
       time: sfn.WaitTime.duration(cdk.Duration.seconds(30))
     });
     const getStatus = new tasks.LambdaInvoke(this, 'Get Job Status', {
-      lambdaFunction: getStatusLambda,
+      lambdaFunction: checkLambda,
       outputPath: '$.Payload'
     });
     const jobFailed = new sfn.Fail(this, 'Job Failed', {
@@ -40,7 +40,7 @@ export class JobPollerStack extends cdk.Stack {
       error: 'DescribeJob returned FAILED'
     });
     const finalStatus = new tasks.LambdaInvoke(this, 'Get Final Job Status', {
-      lambdaFunction: getStatusLambda,
+      lambdaFunction: checkLambda,
       outputPath: '$.Payload'
     });
 
@@ -58,7 +58,7 @@ export class JobPollerStack extends cdk.Stack {
     });
 
     submitLambda.grantInvoke(stateMachine.role);
-    getStatusLambda.grantInvoke(stateMachine.role);
+    checkLambda.grantInvoke(stateMachine.role);
 
     const rule = new events.Rule(this, 'Rule', {
       schedule: events.Schedule.expression('cron(0 18 ? * MON-FRI *)')
